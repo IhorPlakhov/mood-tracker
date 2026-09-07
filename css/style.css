@@ -25,12 +25,6 @@ header h1 {
   color: #1e3a35;
 }
 
-header nav a {
-  margin-right: 1rem;
-  text-decoration: none;
-  color: #1e3a35;
-}
-
 main {
   max-width: 680px;
   margin: 0 auto;
