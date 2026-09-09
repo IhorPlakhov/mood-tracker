@@ -25,10 +25,13 @@ header h1 {
   color: #1e3a35;
 }
 
-main {
+.layout {
   max-width: 680px;
   margin: 0 auto;
   padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 
 section {
@@ -108,7 +111,7 @@ article {
   background-color: #fff0e5;
   border-radius: 16px;
   padding: 14px;
-  margin-bottom: 12px;
+  margin-bottom: 0; /* замість 12px */
   border: 1px solid #fad4b2;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
 }
@@ -124,8 +127,6 @@ article p {
 }
 
 aside {
-  max-width: 680px;
-  margin: 0 auto 2rem auto;
   background-color: #a98bcd;
   color: #ffffff;
   border: 1px solid #dfd8f5;
@@ -153,4 +154,34 @@ footer {
 
 footer p {
   margin: 0;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 600px) {
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .layout {
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    gap: 24px;
+    max-width: 1100px;
+    align-items: start;
+  }
+
+  .cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  aside {
+    margin-top: 46px;
+  }
 }
