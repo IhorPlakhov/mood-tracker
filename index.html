@@ -12,97 +12,106 @@
       <h1>Трекер настрою</h1>
     </header>
 
-    <main>
-      <section>
-        <h2>Відмітити настрій</h2>
+    <div class="layout">
+      <main>
+        <section>
+          <h2>Відмітити настрій</h2>
 
-        <form action="#" method="post">
-          <div class="mood-selector">
-            <input type="radio" id="mood-amazing" name="mood" value="amazing" />
-            <label for="mood-amazing" class="mood-box">
-              <span class="mood-emoji">🤩</span>
-              <span class="mood-title">Неймовірний</span>
-            </label>
+          <form action="#" method="post">
+            <div class="mood-selector">
+              <input
+                type="radio"
+                id="mood-amazing"
+                name="mood"
+                value="amazing"
+              />
+              <label for="mood-amazing" class="mood-box">
+                <span class="mood-emoji">🤩</span>
+                <span class="mood-title">Неймовірний</span>
+              </label>
 
-            <input type="radio" id="mood-happy" name="mood" value="happy" />
-            <label for="mood-happy" class="mood-box">
-              <span class="mood-emoji">😊</span>
-              <span class="mood-title">Чудовий</span>
-            </label>
+              <input type="radio" id="mood-happy" name="mood" value="happy" />
+              <label for="mood-happy" class="mood-box">
+                <span class="mood-emoji">😊</span>
+                <span class="mood-title">Чудовий</span>
+              </label>
 
-            <input
-              type="radio"
-              id="mood-calm"
-              name="mood"
-              value="calm"
-              checked
-            />
-            <label for="mood-calm" class="mood-box">
-              <span class="mood-emoji">🙂</span>
-              <span class="mood-title">Спокійний</span>
-            </label>
+              <input
+                type="radio"
+                id="mood-calm"
+                name="mood"
+                value="calm"
+                checked
+              />
+              <label for="mood-calm" class="mood-box">
+                <span class="mood-emoji">🙂</span>
+                <span class="mood-title">Спокійний</span>
+              </label>
 
-            <input type="radio" id="mood-tired" name="mood" value="tired" />
-            <label for="mood-tired" class="mood-box">
-              <span class="mood-emoji">🥱</span>
-              <span class="mood-title">Виснажений</span>
-            </label>
+              <input type="radio" id="mood-tired" name="mood" value="tired" />
+              <label for="mood-tired" class="mood-box">
+                <span class="mood-emoji">🥱</span>
+                <span class="mood-title">Виснажений</span>
+              </label>
 
-            <input type="radio" id="mood-sad" name="mood" value="sad" />
-            <label for="mood-sad" class="mood-box">
-              <span class="mood-emoji">😔</span>
-              <span class="mood-title">Сумний</span>
-            </label>
+              <input type="radio" id="mood-sad" name="mood" value="sad" />
+              <label for="mood-sad" class="mood-box">
+                <span class="mood-emoji">😔</span>
+                <span class="mood-title">Сумний</span>
+              </label>
 
-            <input
-              type="radio"
-              id="mood-very-sad"
-              name="mood"
-              value="very-sad"
-            />
-            <label for="mood-very-sad" class="mood-box">
-              <span class="mood-emoji">😭</span>
-              <span class="mood-title">Дуже сумний</span>
-            </label>
+              <input
+                type="radio"
+                id="mood-very-sad"
+                name="mood"
+                value="very-sad"
+              />
+              <label for="mood-very-sad" class="mood-box">
+                <span class="mood-emoji">😭</span>
+                <span class="mood-title">Дуже сумний</span>
+              </label>
+            </div>
+
+            <div>
+              <label for="mood-comment">Думки та нотатки протягом дня:</label>
+              <textarea id="mood-comment" name="comment" rows="3"></textarea>
+            </div>
+
+            <button type="submit">Зберегти настрій</button>
+          </form>
+        </section>
+
+        <section>
+          <h2>Історія записів</h2>
+
+          <div class="cards">
+            <article class="card">
+              <h3>6 вересня 2026</h3>
+              <p><strong>Настрій:</strong> Спокійний</p>
+              <p>Стандарний день</p>
+            </article>
+
+            <article class="card">
+              <h3>4 вересня 2026</h3>
+              <p><strong>Настрій:</strong> Чудовий</p>
+              <p>Просто гарний день</p>
+            </article>
+
+            <article class="card">
+              <h3>3 вересня 2026</h3>
+              <p><strong>Настрій:</strong> Виснажений</p>
+              <p>Багато працював</p>
+            </article>
           </div>
+        </section>
+      </main>
 
-          <div>
-            <label for="mood-comment">Думки та нотатки протягом дня:</label>
-            <textarea id="mood-comment" name="comment" rows="3"></textarea>
-          </div>
-
-          <button type="submit">Зберегти настрій</button>
-        </form>
-      </section>
-
-      <section>
-        <h2>Історія записів</h2>
-
-        <article class="card">
-          <h3>6 вересня 2026</h3>
-          <p><strong>Настрій:</strong> Спокійний</p>
-          <p>Стандарний день</p>
-        </article>
-
-        <article class="card">
-          <h3>4 вересня 2026</h3>
-          <p><strong>Настрій:</strong> Чудовий</p>
-          <p>Просто гарний день</p>
-        </article>
-
-        <article class="card">
-          <h3>3 вересня 2026</h3>
-          <p><strong>Настрій:</strong> Виснажений</p>
-          <p>Багато працював</p>
-        </article>
-      </section>
-    </main>
-
-    <aside>
-      <h2>Статистика та підсумок</h2>
-      <p>За останній тиждень ваш настрій поліпшився.</p>
-      <p>Кількість записів цього тижня: <strong>3</strong>.</p>
-    </aside>
+      <aside>
+        <h2>Статистика та підсумок</h2>
+        <p>За останній тиждень ваш настрій поліпшився.</p>
+        <p>Кількість записів цього тижня: <strong>3</strong>.</p>
+      </aside>
+    </div>
 
     <footer>
       <p>&copy;Навчальний проєкт «Трекер настрою». Автор: Ігор Плахов.</p>
