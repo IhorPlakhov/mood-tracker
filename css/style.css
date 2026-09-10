@@ -16,15 +16,15 @@ body {
 header {
   display: flex;
   align-items: center;
-  background-color: #5bc8af;
+  background-color: #436150;
   padding: 1.25rem 1.5rem;
-  border-bottom: 2px solid #cbe3e7;
+  border-bottom: 2px solid #344c3e;
 }
 
 header h1 {
   margin: 0;
   font-size: 1.5rem;
-  color: #1e3a35;
+  color: #ffffff;
 }
 
 .layout {
@@ -85,37 +85,76 @@ textarea {
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  background-color: #fad4b2;
-  border: 1px solid #f5c69d;
+  background-color: #fdf0e6;
+  border: 1px solid #f5d4bf;
   border-radius: 8px;
   cursor: pointer;
   margin-bottom: 0;
+  user-select: none;
 }
 
 .mood-selector input[type="radio"]:checked + .mood-box {
-  background-color: #ff9e5c;
-  border: 2px solid #d45113;
-  box-shadow: 0 0 14px rgba(212, 81, 19, 0.45);
+  background-color: #fadbc5;
+  border: 2px solid #436150;
+  font-weight: 600;
 }
 
 button[type="submit"] {
   width: 100%;
   padding: 12px;
-  background-color: #5bc8af;
-  border: 1px solid #b8dade;
+  background-color: #436150;
+  border: 1px solid #344c3e;
   border-radius: 8px;
   font-weight: 600;
-  color: #1e3a35;
+  color: #ffffff;
   cursor: pointer;
 }
 
-article {
-  background-color: #fff0e5;
+/* Для 6 рівнів настрою обрано приглушені відтінки замість насичених, щоб інтерфейс 
+   мав спокійну і розслаблену атмосферу. Це допомагає користувачу фіксувати на своєму
+   настрої і почуттях і не відволікатися на занадто яскравий чи кольоровий інтерфейс*/
+.card {
   border-radius: 16px;
   padding: 14px;
-  margin-bottom: 0; /* замість 12px */
-  border: 1px solid #fad4b2;
+  margin-bottom: 0;
+  border: 1px solid transparent;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+}
+
+.card--amazing {
+  background-color: #fde8d3;
+  border-color: #f7bf92;
+  color: #5a2f02;
+}
+
+.card--happy {
+  background-color: #dcf2e3;
+  border-color: #9fdeb4;
+  color: #114223;
+}
+
+.card--calm {
+  background-color: #daf1f3;
+  border-color: #9fe0e6;
+  color: #0c4349;
+}
+
+.card--tired {
+  background-color: #ebe1f7;
+  border-color: #cbb4eb;
+  color: #342254;
+}
+
+.card--sad {
+  background-color: #dce7f5;
+  border-color: #a8c7ea;
+  color: #13334e;
+}
+
+.card--very-sad {
+  background-color: #f5dddd;
+  border-color: #e0acac;
+  color: #541d1d;
 }
 
 article h3 {
@@ -129,9 +168,9 @@ article p {
 }
 
 aside {
-  background-color: #a98bcd;
-  color: #ffffff;
-  border: 1px solid #dfd8f5;
+  background-color: #ede8f5;
+  color: #2b233a;
+  border: 1px solid #dcd4ea;
   border-radius: 16px;
   padding: 16px;
   text-align: center;
@@ -140,6 +179,7 @@ aside {
 aside h2 {
   margin-top: 0;
   margin-bottom: 8px;
+  color: #433660;
 }
 
 aside p {
@@ -150,7 +190,7 @@ footer {
   padding: 1.5rem 1rem;
   text-align: center;
   font-size: 0.85rem;
-  color: #7b807d;
+  color: #5c615e;
   border-top: 1px solid #e7e4df;
 }
 
