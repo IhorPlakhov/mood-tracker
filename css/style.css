@@ -227,3 +227,10 @@ footer p {
     margin-top: 46px;
   }
 }
+
+#char-counter {
+  display: block;
+  text-align: right;
+  color: #666;
+  margin-bottom: 12px;
+}
