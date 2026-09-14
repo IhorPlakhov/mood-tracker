@@ -6,13 +6,16 @@ const moodRecords = [
 
 const listContainer = document.querySelector('#mood-history');
 
-const moodClasses = {
-  1: "card--very-sad",
-  2: "card--sad",
-  3: "card--tired",
-  4: "card--calm",
-  5: "card--happy",
-  6: "card--amazing"
+const moodToLabel = (mood) => {
+  const classes = {
+    1: "card--very-sad",
+    2: "card--sad",
+    3: "card--tired",
+    4: "card--calm",
+    5: "card--happy",
+    6: "card--amazing"
+  };
+  return classes[mood];
 };
 
 // Обчислює середній настрій та повертає його числове значення
@@ -68,10 +71,9 @@ function renderMoodHistory(records) {
     const card = document.createElement('article');
     card.classList.add('card');
 
-    if (moodClasses[record.mood]) {
-      card.classList.add(moodClasses[record.mood]);
-    }
+    card.classList.add(moodToLabel(record.mood));
     card.dataset.mood = record.mood;
+
     const dateTitle = document.createElement('h3');
     dateTitle.textContent = record.date;
     const noteText = document.createElement('p');
