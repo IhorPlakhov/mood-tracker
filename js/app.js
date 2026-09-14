@@ -4,6 +4,11 @@ const moodRecords = [
   { date: "2026-09-03", mood: 3, note: "Багато працював"}
 ];
 
+const MAX_CHARS = 200;
+
+const form = document.querySelector('#mood-form');
+const inputComment = document.querySelector('#mood-comment');
+const charCounter = document.querySelector('#char-counter');
 const listContainer = document.querySelector('#mood-history');
 
 // Перетворює числову оцінку настрою на CSS клас що відповідає цьому настрою
@@ -37,32 +42,24 @@ function getMiddleValueOfMood() {
 function addMoodRecord(event) {
   event.preventDefault();
 
-  const moodScores = {
-    very_sad: 1,
-    sad: 2,
-    tired: 3,
-    calm: 4,
-    happy: 5,
-    amazing: 6
-  };
-
   const selectedInput = document.querySelector('input[name="mood"]:checked');
   if (!selectedInput) return;
 
-  const commentInput = document.querySelector('#mood-comment');
-  const currentMood = moodScores[selectedInput.value];
+  const currentMood = Number(selectedInput.value);
   const currentDate = new Date().toISOString().split("T")[0];
+  const noteText = inputComment.value.trim();
 
-  moodRecords.unshift({
+  moodRecords.push({
     date: currentDate,
     mood: currentMood,
-    note: commentInput.value.trim() || "Без опису"
+    note: noteText || "Без опису"
   });
-
-  commentInput.value = '';
 
   renderMoodHistory(moodRecords);
   updateSummaryUI(getMiddleValueOfMood());
+
+  form.reset();
+  charCounter.textContent = `Залишилось символів: ${MAX_CHARS}`;
 }
 
 // Оновлює блоки з записами настрою
@@ -95,7 +92,12 @@ function updateSummaryUI(average_value){
   }
 }
 
-document.querySelector("form")?.addEventListener("submit", addMoodRecord);
+inputComment.addEventListener('input', () => {
+  const remaining = MAX_CHARS - inputComment.value.length;
+  charCounter.textContent = `Залишилось символів: ${remaining}`;
+});
+
+form.addEventListener('submit', addMoodRecord);
 
 renderMoodHistory(moodRecords);
 updateSummaryUI(getMiddleValueOfMood());
