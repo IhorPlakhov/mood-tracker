@@ -1,7 +1,7 @@
 const moodRecords = [
-    { date: "2026-09-06", mood: 4, note: "Стандартний день"},
-    { date: "2026-09-04", mood: 5, note: "Просто гарний день" },
-    { date: "2026-09-03", mood: 3, note: "Багато працював" }
+  { date: "2026-09-06", mood: 4, note: "Стандартний день"},
+  { date: "2026-09-04", mood: 5, note: "Просто гарний день"},
+  { date: "2026-09-03", mood: 3, note: "Багато працював"}
 ];
 
 const listContainer = document.querySelector('#mood-history');
@@ -21,16 +21,16 @@ const moodToLabel = (mood) => {
 
 // Обчислює середній настрій та повертає його числове значення
 function getMiddleValueOfMood() {
-    if (moodRecords.length === 0) {
-        console.log("Записів ще немає.");
-        return 0;
-    }
+  if (moodRecords.length === 0) {
+    console.log("Записів ще немає.");
+    return 0;
+  }
 
-    let sum = 0;
-    for (let i = 0; i < moodRecords.length; i++) {
-        sum += moodRecords[i].mood;
-    }
-    return sum / moodRecords.length;
+  let sum = 0;
+  for (let i = 0; i < moodRecords.length; i++) {
+    sum += moodRecords[i].mood;
+  }
+  return sum / moodRecords.length;
 }
 
 // Зчитує настрій з форми додає запис в масив та виклик розрахунок
