@@ -6,6 +6,7 @@ const moodRecords = [
 
 const listContainer = document.querySelector('#mood-history');
 
+// Перетворює числову оцінку настрою на CSS клас що відповідає цьому настрою
 const moodToLabel = (mood) => {
   const classes = {
     1: "card--very-sad",
@@ -64,6 +65,7 @@ function addMoodRecord(event) {
   updateSummaryUI(getMiddleValueOfMood());
 }
 
+// Оновлює блоки з записами настрою
 function renderMoodHistory(records) {
   listContainer.innerHTML = '';
 
@@ -84,6 +86,7 @@ function renderMoodHistory(records) {
   });
 }
 
+// Оновлює UI з підсумком настрою
 function updateSummaryUI(average_value){
   console.log(`Середній настрій: ${average_value.toFixed(2)}`);
   const status = average_value >= 3.5 ? "гарний тиждень" : "важкий тиждень";
