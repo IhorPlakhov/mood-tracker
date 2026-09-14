@@ -88,7 +88,6 @@ function renderMoodHistory(records) {
 
 // Оновлює UI з підсумком настрою
 function updateSummaryUI(average_value){
-  console.log(`Середній настрій: ${average_value.toFixed(2)}`);
   const status = average_value >= 3.5 ? "гарний тиждень" : "важкий тиждень";
   const avgElement = document.querySelector('#avg-mood');
   if (avgElement) {
