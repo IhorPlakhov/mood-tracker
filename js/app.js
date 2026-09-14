@@ -1,20 +1,18 @@
 const moodRecords = [
-    { date: "2026-09-06", mood: 4 },
-    { date: "2026-09-04", mood: 5 },
-    { date: "2026-09-03", mood: 3 }
+    { date: "2026-09-06", mood: 4, note: "Стандартний день"},
+    { date: "2026-09-04", mood: 5, note: "Просто гарний день" },
+    { date: "2026-09-03", mood: 3, note: "Багато працював" }
 ];
 
-// Перетворює бал настрою у відповідний текстовий опиc
-const moodToLabel = (mood) => {
-  const labels = {
-    1: "Дуже сумний",
-    2: "Сумний",
-    3: "Виснажений",
-    4: "Спокійний",
-    5: "Чудовий",
-    6: "Неймовірний"
-  };
-  return labels[mood] || "Невідомий";
+const listContainer = document.querySelector('#mood-history');
+
+const moodClasses = {
+  1: "card--very-sad",
+  2: "card--sad",
+  3: "card--tired",
+  4: "card--calm",
+  5: "card--happy",
+  6: "card--amazing"
 };
 
 // Обчислює середній настрій та повертає його числове значення
@@ -28,21 +26,7 @@ function getMiddleValueOfMood() {
     for (let i = 0; i < moodRecords.length; i++) {
         sum += moodRecords[i].mood;
     }
-    console.log(`Кількість записів: ${moodRecords.length}`);
-    console.log(`Сума балів: ${sum}`);
-    const average_value = sum / moodRecords.length;
-
-    return average_value;
-}
-
-// Виводить результат чи тиждень гарний чи важкий у консоль
-function printResultsInConsol(average_value){
-    console.log(`Середній настрій: ${average_value.toFixed(2)}`);
-    if (average_value >= 3.5) {
-    console.log("Підсумок: гарний тиждень");
-    } else {
-    console.log("Підсумок: важкий тиждень");
-    }
+    return sum / moodRecords.length;
 }
 
 // Зчитує настрій з форми додає запис в масив та виклик розрахунок
@@ -61,21 +45,53 @@ function addMoodRecord(event) {
   const selectedInput = document.querySelector('input[name="mood"]:checked');
   if (!selectedInput) return;
 
+  const commentInput = document.querySelector('#mood-comment');
   const currentMood = moodScores[selectedInput.value];
   const currentDate = new Date().toISOString().split("T")[0];
 
-  moodRecords.push({
+  moodRecords.unshift({
     date: currentDate,
-    mood: currentMood
+    mood: currentMood,
+    note: commentInput.value.trim() || "Без опису"
   });
 
-  console.log(`\nДодано: ${currentDate}, настрій: ${currentMood} (${moodToLabel(currentMood)})`);
-  printResultsInConsol(getMiddleValueOfMood());
+  commentInput.value = '';
+
+  renderMoodHistory(moodRecords);
+  updateSummaryUI(getMiddleValueOfMood());
 }
 
-console.log("Перевірка moodToLabel для 6:", moodToLabel(6));
-console.log("Перевірка moodToLabel для 1:", moodToLabel(1));
+function renderMoodHistory(records) {
+  listContainer.innerHTML = '';
+
+  records.forEach(record => {
+    const card = document.createElement('article');
+    card.classList.add('card');
+
+    if (moodClasses[record.mood]) {
+      card.classList.add(moodClasses[record.mood]);
+    }
+    card.dataset.mood = record.mood;
+    const dateTitle = document.createElement('h3');
+    dateTitle.textContent = record.date;
+    const noteText = document.createElement('p');
+    noteText.textContent = record.note || "Без опису";
+
+    card.append(dateTitle, noteText);
+    listContainer.append(card);
+  });
+}
+
+function updateSummaryUI(average_value){
+  console.log(`Середній настрій: ${average_value.toFixed(2)}`);
+  const status = average_value >= 3.5 ? "гарний тиждень" : "важкий тиждень";
+  const avgElement = document.querySelector('#avg-mood');
+  if (avgElement) {
+    avgElement.textContent = `Середній настрій: ${average_value.toFixed(1)} / 6 (${status})`;
+  }
+}
 
 document.querySelector("form")?.addEventListener("submit", addMoodRecord);
 
-printResultsInConsol(getMiddleValueOfMood());
+renderMoodHistory(moodRecords);
+updateSummaryUI(getMiddleValueOfMood());
