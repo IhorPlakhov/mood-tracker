@@ -92,6 +92,7 @@ function updateSummaryUI(average_value){
   }
 }
 
+// Обробник події для лічильника символів
 inputComment.addEventListener('input', () => {
   const remaining = MAX_CHARS - inputComment.value.length;
   charCounter.textContent = `Залишилось символів: ${remaining}`;
