@@ -57,7 +57,7 @@ function addMoodRecord(event) {
   moodRecords.push({
     date: currentDate,
     mood: currentMood,
-    note: noteText || "Без опису"
+    note: noteText
   });
 
   renderMoodHistory(moodRecords);
@@ -103,7 +103,7 @@ inputComment.addEventListener('input', () => {
   charCounter.textContent = `Залишилось символів: ${remaining}`;
 
 
-  if (inputComment.value.trim().length === 0) {
+  if (inputComment.value.length > 0 && inputComment.value.trim().length === 0) {
     inputComment.setCustomValidity('Нотатка не може складатися лише з пробілів.');
   } else {
     inputComment.setCustomValidity('');
