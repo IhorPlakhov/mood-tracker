@@ -42,6 +42,11 @@ function getMiddleValueOfMood() {
 function addMoodRecord(event) {
   event.preventDefault();
 
+  if (!form.checkValidity()) {
+    form.reportValidity();
+    return;
+  }
+
   const selectedInput = document.querySelector('input[name="mood"]:checked');
   if (!selectedInput) return;
 
@@ -76,7 +81,7 @@ function renderMoodHistory(records) {
     const dateTitle = document.createElement('h3');
     dateTitle.textContent = record.date;
     const noteText = document.createElement('p');
-    noteText.textContent = record.note || "Без опису";
+    noteText.textContent = record.note;
 
     card.append(dateTitle, noteText);
     listContainer.append(card);
@@ -96,6 +101,13 @@ function updateSummaryUI(average_value){
 inputComment.addEventListener('input', () => {
   const remaining = MAX_CHARS - inputComment.value.length;
   charCounter.textContent = `Залишилось символів: ${remaining}`;
+
+
+  if (inputComment.value.trim().length === 0) {
+    inputComment.setCustomValidity('Нотатка не може складатися лише з пробілів.');
+  } else {
+    inputComment.setCustomValidity('');
+  }
 });
 
 form.addEventListener('submit', addMoodRecord);
