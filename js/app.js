@@ -5,6 +5,7 @@ const moodRecords = [
 ];
 
 const MAX_CHARS = 200;
+const URL = 'https://jsonplaceholder.typicode.com/posts/1'
 
 const form = document.querySelector('#mood-form');
 const inputComment = document.querySelector('#mood-comment');
@@ -114,3 +115,14 @@ form.addEventListener('submit', addMoodRecord);
 
 renderMoodHistory(moodRecords);
 updateSummaryUI(getMiddleValueOfMood());
+
+async function loadData() {
+  try{
+    const response = await fetch(URL);
+    if (!response.ok) throw new Error(`Код ${response.status}`);
+  }catch (error){
+    showError('Не вдалося завантажити дані. Спробуйте пізніше.');
+    console.error(error);
+  }
+
+}
