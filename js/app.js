@@ -1,15 +1,34 @@
 const moodRecords = [
-  { date: "2026-09-06", mood: 4, note: "Стандартний день"},
-  { date: "2026-09-04", mood: 5, note: "Просто гарний день"},
-  { date: "2026-09-03", mood: 3, note: "Багато працював"}
+  { date: "2026-09-06", mood: 4, note: "Стандартний день" },
+  { date: "2026-09-04", mood: 5, note: "Просто гарний день" },
+  { date: "2026-09-03", mood: 3, note: "Багато працював" },
 ];
 
 const MAX_CHARS = 200;
 
-const form = document.querySelector('#mood-form');
-const inputComment = document.querySelector('#mood-comment');
-const charCounter = document.querySelector('#char-counter');
-const listContainer = document.querySelector('#mood-history');
+const inputMood = document.querySelector("#mood-value");
+const form = document.querySelector("#mood-form");
+const inputComment = document.querySelector("#mood-comment");
+const charCounter = document.querySelector("#char-counter");
+const listContainer = document.querySelector("#mood-history");
+
+// Перевіряє, що настрій це ціле число від 1 до 6
+function validateMoodInput() {
+  const raw = inputMood.value.trim();
+  const value = Number(raw);
+
+  if (raw === "") {
+    inputMood.setCustomValidity("Введіть оцінку настрою від 1 до 6.");
+  } else if (!Number.isInteger(value)) {
+    inputMood.setCustomValidity("Настрій має бути цілим числом.");
+  } else if (value < 1 || value > 6) {
+    inputMood.setCustomValidity("Настрій має бути в діапазоні від 1 до 6.");
+  } else {
+    inputMood.setCustomValidity("");
+  }
+}
+
+inputMood.addEventListener("input", validateMoodInput);
 
 // Перетворює числову оцінку настрою на CSS клас що відповідає цьому настрою
 const moodToLabel = (mood) => {
@@ -19,7 +38,7 @@ const moodToLabel = (mood) => {
     3: "card--tired",
     4: "card--calm",
     5: "card--happy",
-    6: "card--amazing"
+    6: "card--amazing",
   };
   return classes[mood];
 };
@@ -42,22 +61,20 @@ function getMiddleValueOfMood() {
 function addMoodRecord(event) {
   event.preventDefault();
 
+  validateMoodInput();
   if (!form.checkValidity()) {
     form.reportValidity();
     return;
   }
 
-  const selectedInput = document.querySelector('input[name="mood"]:checked');
-  if (!selectedInput) return;
-
-  const currentMood = Number(selectedInput.value);
-  const currentDate = new Date().toISOString().split("T")[0];
+  const currentMood = Number(inputMood.value);
+  const currentDate = new Date().toLocaleDateString("sv-SE");
   const noteText = inputComment.value.trim();
 
   moodRecords.push({
     date: currentDate,
     mood: currentMood,
-    note: noteText
+    note: noteText,
   });
 
   renderMoodHistory(moodRecords);
@@ -69,18 +86,18 @@ function addMoodRecord(event) {
 
 // Оновлює блоки з записами настрою
 function renderMoodHistory(records) {
-  listContainer.innerHTML = '';
+  listContainer.innerHTML = "";
 
-  records.forEach(record => {
-    const card = document.createElement('article');
-    card.classList.add('card');
+  records.forEach((record) => {
+    const card = document.createElement("article");
+    card.classList.add("card");
 
     card.classList.add(moodToLabel(record.mood));
     card.dataset.mood = record.mood;
 
-    const dateTitle = document.createElement('h3');
+    const dateTitle = document.createElement("h3");
     dateTitle.textContent = record.date;
-    const noteText = document.createElement('p');
+    const noteText = document.createElement("p");
     noteText.textContent = record.note;
 
     card.append(dateTitle, noteText);
@@ -89,28 +106,29 @@ function renderMoodHistory(records) {
 }
 
 // Оновлює UI з підсумком настрою
-function updateSummaryUI(average_value){
+function updateSummaryUI(average_value) {
   const status = average_value >= 3.5 ? "гарний тиждень" : "важкий тиждень";
-  const avgElement = document.querySelector('#avg-mood');
+  const avgElement = document.querySelector("#avg-mood");
   if (avgElement) {
     avgElement.textContent = `Середній настрій: ${average_value.toFixed(1)} / 6 (${status})`;
   }
 }
 
 // Обробник події для лічильника символів
-inputComment.addEventListener('input', () => {
+inputComment.addEventListener("input", () => {
   const remaining = MAX_CHARS - inputComment.value.length;
   charCounter.textContent = `Залишилось символів: ${remaining}`;
 
-
   if (inputComment.value.length > 0 && inputComment.value.trim().length === 0) {
-    inputComment.setCustomValidity('Нотатка не може складатися лише з пробілів.');
+    inputComment.setCustomValidity(
+      "Нотатка не може складатися лише з пробілів.",
+    );
   } else {
-    inputComment.setCustomValidity('');
+    inputComment.setCustomValidity("");
   }
 });
 
-form.addEventListener('submit', addMoodRecord);
+form.addEventListener("submit", addMoodRecord);
 
 renderMoodHistory(moodRecords);
 updateSummaryUI(getMiddleValueOfMood());

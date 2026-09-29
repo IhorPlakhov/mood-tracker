@@ -110,6 +110,25 @@ button[type="submit"] {
   cursor: pointer;
 }
 
+.mood-field {
+  margin-bottom: 14px;
+}
+
+input[type="number"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #dcd7eb;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+
+.mood-hint {
+  display: block;
+  margin-top: 4px;
+  color: #666;
+}
+
 /* Для 6 рівнів настрою обрано приглушені відтінки замість насичених, щоб інтерфейс 
    мав спокійну і розслаблену атмосферу. Це допомагає користувачу фіксувати на своєму
    настрої і почуттях і не відволікатися на занадто яскравий чи кольоровий інтерфейс*/

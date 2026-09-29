@@ -24,79 +24,18 @@
           <h2>Відмітити настрій</h2>
 
           <form id="mood-form" action="#" method="post">
-            <div class="mood-selector">
+            <div class="mood-field">
+              <label for="mood-value">Настрій (число від 1 до 6):</label>
               <input
-                type="radio"
-                id="mood-amazing"
+                type="number"
+                id="mood-value"
                 name="mood"
-                value="6"
+                min="1"
+                max="6"
+                step="1"
                 required
               />
-              <label for="mood-amazing" class="mood-box">
-                <span class="mood-emoji">🤩</span>
-                <span class="mood-title">Неймовірний</span>
-              </label>
-
-              <input
-                type="radio"
-                id="mood-happy"
-                name="mood"
-                value="5"
-                required
-              />
-              <label for="mood-happy" class="mood-box">
-                <span class="mood-emoji">😊</span>
-                <span class="mood-title">Чудовий</span>
-              </label>
-
-              <input
-                type="radio"
-                id="mood-calm"
-                name="mood"
-                value="4"
-                checked
-                required
-              />
-              <label for="mood-calm" class="mood-box">
-                <span class="mood-emoji">🙂</span>
-                <span class="mood-title">Спокійний</span>
-              </label>
-
-              <input
-                type="radio"
-                id="mood-tired"
-                name="mood"
-                value="3"
-                required
-              />
-              <label for="mood-tired" class="mood-box">
-                <span class="mood-emoji">🥱</span>
-                <span class="mood-title">Виснажений</span>
-              </label>
-
-              <input
-                type="radio"
-                id="mood-sad"
-                name="mood"
-                value="2"
-                required
-              />
-              <label for="mood-sad" class="mood-box">
-                <span class="mood-emoji">😔</span>
-                <span class="mood-title">Сумний</span>
-              </label>
-
-              <input
-                type="radio"
-                id="mood-very-sad"
-                name="mood"
-                value="1"
-                required
-              />
-              <label for="mood-very-sad" class="mood-box">
-                <span class="mood-emoji">😭</span>
-                <span class="mood-title">Дуже сумний</span>
-              </label>
+              <small class="mood-hint">1 — дуже сумний, 6 — неймовірний</small>
             </div>
 
             <div>
