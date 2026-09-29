@@ -234,3 +234,16 @@ footer p {
   color: #666;
   margin-bottom: 12px;
 }
+
+.error-state {
+  background-color: #f5dddd;
+  border: 1px solid #e0acac;
+  color: #541d1d;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.loading-state {
+  grid-column: 1 / -1;
+}
