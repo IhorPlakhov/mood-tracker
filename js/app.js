@@ -99,7 +99,16 @@ function renderMoodHistory(records) {
     const noteText = document.createElement("p");
     noteText.textContent = record.note;
 
-    card.append(dateTitle, noteText);
+    card.append(dateTitle);
+
+    if (record.email) {
+      const emailText = document.createElement("small");
+      emailText.textContent = record.email;
+      emailText.classList.add("card__email");
+      card.append(emailText);
+    }
+
+    card.append(noteText);
     listContainer.append(card);
   });
 }
@@ -152,6 +161,7 @@ async function loadData() {
     const adaptedRecords = data.map((item) => ({
       date: item.name,
       note: item.body,
+      email: item.email,
       mood: currentMood,
     }));
 
