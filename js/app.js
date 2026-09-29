@@ -132,6 +132,7 @@ form.addEventListener("submit", addMoodRecord);
 renderMoodHistory(moodRecords);
 updateSummaryUI(getMiddleValueOfMood());
 
+// Завантажує записи з JSONPlaceholder
 async function loadData() {
   hideError();
   if (submitButton) submitButton.disabled = true;
