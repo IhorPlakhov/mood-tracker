@@ -12,6 +12,7 @@ const submitButton = form.querySelector('button[type="submit"]');
 const inputComment = document.querySelector("#mood-comment");
 const charCounter = document.querySelector("#char-counter");
 const listContainer = document.querySelector("#mood-history");
+const refreshButton = document.querySelector("#refresh-button");
 
 const errorBox = document.querySelector("#error-message");
 
@@ -163,4 +164,4 @@ async function loadData() {
   }
 }
 
-loadData();
+refreshButton.addEventListener("click", loadData);

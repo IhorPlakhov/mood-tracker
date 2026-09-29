@@ -247,3 +247,19 @@ footer p {
 .loading-state {
   grid-column: 1 / -1;
 }
+
+#refresh-button {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  background-color: #ffffff;
+  border: 1px solid #436150;
+  border-radius: 8px;
+  color: #436150;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#refresh-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
