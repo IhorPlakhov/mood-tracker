@@ -5,7 +5,7 @@ const moodRecords = [
 ];
 
 const MAX_CHARS = 200;
-const URL = 'https://jsonplaceholder.typicode.com/posts/1'
+const URL = 'https://jsonplaceholder.typicode.com/comments?postId=1'
 
 const form = document.querySelector('#mood-form');
 const inputComment = document.querySelector('#mood-comment');
@@ -40,7 +40,7 @@ function getMiddleValueOfMood() {
 }
 
 // Зчитує настрій з форми додає запис в масив та виклик розрахунок
-function addMoodRecord(event) {
+async function addMoodRecord(event) {
   event.preventDefault();
 
   if (!form.checkValidity()) {
@@ -55,7 +55,7 @@ function addMoodRecord(event) {
   const currentDate = new Date().toISOString().split("T")[0];
   const noteText = inputComment.value.trim();
 
-  moodRecords.push({
+  moodRecords.unshift({
     date: currentDate,
     mood: currentMood,
     note: noteText
@@ -120,9 +120,24 @@ async function loadData() {
   try{
     const response = await fetch(URL);
     if (!response.ok) throw new Error(`Код ${response.status}`);
+    const data = await response.json();
+    console.log(data);
+
+    const currentMood = Number(document.querySelector('input[name="mood"]:checked').value)
+
+    const adaptedRecords = data.map(item => ({
+      date: item.name,
+      note: item.body,
+      mood: currentMood
+    }));
+
+  renderMoodHistory(adaptedRecords);
+
   }catch (error){
-    showError('Не вдалося завантажити дані. Спробуйте пізніше.');
+    showError('Записи тимчасово недоступні');
     console.error(error);
   }
 
 }
+
+
