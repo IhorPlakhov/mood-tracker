@@ -6,6 +6,7 @@ const moodRecords = [
 
 const MAX_CHARS = 200;
 const API_URL = "https://jsonplaceholder.typicode.com/comments?postId=1";
+const API_MOOD = 4;
 
 const form = document.querySelector("#mood-form");
 const submitButton = form.querySelector('button[type="submit"]');
@@ -13,8 +14,25 @@ const inputComment = document.querySelector("#mood-comment");
 const charCounter = document.querySelector("#char-counter");
 const listContainer = document.querySelector("#mood-history");
 const refreshButton = document.querySelector("#refresh-button");
-
+const inputMood = document.querySelector("#mood-value");
 const errorBox = document.querySelector("#error-message");
+
+function validateMoodInput() {
+  const raw = inputMood.value.trim();
+  const value = Number(raw);
+
+  if (raw === "") {
+    inputMood.setCustomValidity("Введіть оцінку настрою від 1 до 6.");
+  } else if (!Number.isInteger(value)) {
+    inputMood.setCustomValidity("Настрій має бути цілим числом.");
+  } else if (value < 1 || value > 6) {
+    inputMood.setCustomValidity("Настрій має бути в діапазоні від 1 до 6.");
+  } else {
+    inputMood.setCustomValidity("");
+  }
+}
+
+inputMood.addEventListener("input", validateMoodInput);
 
 function showError(message) {
   errorBox.textContent = message;
@@ -57,16 +75,14 @@ function getMiddleValueOfMood() {
 // Зчитує настрій з форми додає запис в масив та виклик розрахунок
 function addMoodRecord(event) {
   event.preventDefault();
+  validateMoodInput();
 
   if (!form.checkValidity()) {
     form.reportValidity();
     return;
   }
 
-  const selectedInput = document.querySelector('input[name="mood"]:checked');
-  if (!selectedInput) return;
-
-  const currentMood = Number(selectedInput.value);
+  const currentMood = Number(inputMood.value);
   const currentDate = new Date().toLocaleDateString("sv-SE");
   const noteText = inputComment.value.trim();
 
@@ -92,7 +108,6 @@ function renderMoodHistory(records) {
     card.classList.add("card");
 
     card.classList.add(moodToLabel(record.mood));
-    card.dataset.mood = record.mood;
 
     const dateTitle = document.createElement("h3");
     dateTitle.textContent = record.date;
@@ -141,7 +156,7 @@ form.addEventListener("submit", addMoodRecord);
 renderMoodHistory(moodRecords);
 updateSummaryUI(getMiddleValueOfMood());
 
-// Завантажує записи з JSONPlaceholder
+// Завантажує записи з JSONPlaceholder: https://jsonplaceholder.typicode.com/comments?postId=1
 async function loadData() {
   hideError();
   if (submitButton) submitButton.disabled = true;
@@ -154,15 +169,11 @@ async function loadData() {
     const data = await response.json();
     console.log(data);
 
-    const currentMood = Number(
-      document.querySelector('input[name="mood"]:checked').value,
-    );
-
     const adaptedRecords = data.map((item) => ({
       date: item.name,
       note: item.body,
       email: item.email,
-      mood: currentMood,
+      mood: API_MOOD,
     }));
 
     moodRecords.push(...adaptedRecords);

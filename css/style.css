@@ -69,36 +69,6 @@ textarea {
   margin-bottom: 12px;
 }
 
-.mood-selector {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 14px;
-}
-
-.mood-selector input[type="radio"] {
-  display: none;
-}
-
-.mood-box {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  background-color: #fdf0e6;
-  border: 1px solid #f5d4bf;
-  border-radius: 8px;
-  cursor: pointer;
-  margin-bottom: 0;
-  user-select: none;
-}
-
-.mood-selector input[type="radio"]:checked + .mood-box {
-  background-color: #fadbc5;
-  border: 2px solid #436150;
-  font-weight: 600;
-}
-
 button[type="submit"] {
   width: 100%;
   padding: 12px;
@@ -108,6 +78,25 @@ button[type="submit"] {
   font-weight: 600;
   color: #ffffff;
   cursor: pointer;
+}
+
+.mood-field {
+  margin-bottom: 14px;
+}
+
+input[type="number"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #dcd7eb;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+
+.mood-hint {
+  display: block;
+  margin-top: 4px;
+  color: #666;
 }
 
 /* Для 6 рівнів настрою обрано приглушені відтінки замість насичених, щоб інтерфейс 
