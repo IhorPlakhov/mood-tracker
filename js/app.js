@@ -19,10 +19,12 @@ const errorBox = document.querySelector("#error-message");
 function showError(message) {
   errorBox.textContent = message;
   errorBox.hidden = false;
+  refreshButton.hidden = false;
 }
 
 function hideError() {
   errorBox.hidden = true;
+  refreshButton.hidden = true;
 }
 
 // Перетворює числову оцінку настрою на CSS клас що відповідає цьому настрою
@@ -165,3 +167,5 @@ async function loadData() {
 }
 
 refreshButton.addEventListener("click", loadData);
+
+loadData();
