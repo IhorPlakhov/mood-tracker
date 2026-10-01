@@ -1,8 +1,32 @@
-const moodRecords = [
-  { date: "2026-09-06", mood: 4, note: "Стандартний день" },
-  { date: "2026-09-04", mood: 5, note: "Просто гарний день" },
-  { date: "2026-09-03", mood: 3, note: "Багато працював" },
-];
+const MoodEntry = {
+  props: {
+    date: String,
+    mood: Number,
+    note: String,
+  },
+  template: `
+    <article class="card">
+      <h3>{{ date }}</h3>
+      <p>Оцінка: {{ mood }}/6</p>
+      <p>{{ note }}</p>
+    </article>
+  `,
+};
+
+Vue.createApp({
+  components: {
+    MoodEntry,
+  },
+  data() {
+    return {
+      moodRecords: [
+        { id: 1, date: "2026-09-06", mood: 4, note: "Стандартний день" },
+        { id: 2, date: "2026-09-04", mood: 5, note: "Просто гарний день" },
+        { id: 3, date: "2026-09-03", mood: 3, note: "Багато працював" },
+      ],
+    };
+  },
+}).mount("#app");
 
 const MAX_CHARS = 200;
 const API_URL = "https://jsonplaceholder.typicode.com/comments?postId=1";
@@ -60,16 +84,15 @@ const moodToLabel = (mood) => {
 
 // Обчислює середній настрій та повертає його числове значення
 function getMiddleValueOfMood() {
-  if (moodRecords.length === 0) {
-    console.log("Записів ще немає.");
+  if (app.moodRecords.length === 0) {
     return 0;
   }
 
   let sum = 0;
-  for (let i = 0; i < moodRecords.length; i++) {
-    sum += moodRecords[i].mood;
+  for (let i = 0; i < app.moodRecords.length; i++) {
+    sum += app.moodRecords[i].mood;
   }
-  return sum / moodRecords.length;
+  return sum / app.moodRecords.length;
 }
 
 // Зчитує настрій з форми додає запис в масив та виклик розрахунок
@@ -86,13 +109,13 @@ function addMoodRecord(event) {
   const currentDate = new Date().toLocaleDateString("sv-SE");
   const noteText = inputComment.value.trim();
 
-  moodRecords.unshift({
+  app.moodRecords.unshift({
+    id: Date.now(),
     date: currentDate,
     mood: currentMood,
     note: noteText,
   });
 
-  renderMoodHistory(moodRecords);
   updateSummaryUI(getMiddleValueOfMood());
 
   form.reset();
@@ -170,6 +193,7 @@ async function loadData() {
     console.log(data);
 
     const adaptedRecords = data.map((item) => ({
+      id: item.id,
       date: item.name,
       note: item.body,
       email: item.email,
@@ -190,4 +214,5 @@ async function loadData() {
 
 refreshButton.addEventListener("click", loadData);
 
+updateSummaryUI(getMiddleValueOfMood());
 loadData();
