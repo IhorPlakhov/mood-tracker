@@ -93,12 +93,6 @@ input[type="number"] {
   font-size: 0.95rem;
 }
 
-.mood-hint {
-  display: block;
-  margin-top: 4px;
-  color: #666;
-}
-
 /* Для 6 рівнів настрою обрано приглушені відтінки замість насичених, щоб інтерфейс 
    мав спокійну і розслаблену атмосферу. Це допомагає користувачу фіксувати на своєму
    настрої і почуттях і не відволікатися на занадто яскравий чи кольоровий інтерфейс*/
@@ -114,6 +108,12 @@ input[type="number"] {
   background-color: #fde8d3;
   border-color: #f7bf92;
   color: #5a2f02;
+}
+
+.mood-hint {
+  display: block;
+  margin-top: 4px;
+  color: #666;
 }
 
 .card--happy {
@@ -231,10 +231,6 @@ footer p {
   border-radius: 8px;
   padding: 12px;
   margin-bottom: 16px;
-}
-
-.loading-state {
-  grid-column: 1 / -1;
 }
 
 #refresh-button {
