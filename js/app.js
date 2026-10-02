@@ -41,7 +41,7 @@ const MoodEntry = {
     },
   },
   template: `
-    <article class="card" :class="moodClass">
+    <article class="card" :class="moodClass" @click="promoteMood">
       <div class="card-header">
         <h3>{{ date }}</h3>
         <span class="card-emoji">{{ emoji }}</span>
@@ -65,12 +65,22 @@ const app = Vue.createApp({
       ],
     };
   },
+  computed: {
+    average() {
+      if (this.moodRecords.length === 0) return 0;
+      const sum = this.moodRecords.reduce((acc, r) => acc + r.mood, 0);
+      return sum / this.moodRecords.length;
+    },
+    summaryText() {
+      const status = this.average >= 3.5 ? "гарний тиждень" : "важкий тиждень";
+      return `Середній настрій: ${this.average.toFixed(1)} / 6 (${status})`;
+    },
+  },
   methods: {
     handleMoodUpdate({ id, newMood }) {
       const target = this.moodRecords.find((record) => record.id === id);
       if (target) {
         target.mood = newMood;
-        updateSummaryUI(getMiddleValueOfMood());
       }
     },
   },
@@ -116,32 +126,6 @@ function hideError() {
   refreshButton.hidden = true;
 }
 
-// Перетворює числову оцінку настрою на CSS клас що відповідає цьому настрою
-const moodToLabel = (mood) => {
-  const classes = {
-    1: "card--very-sad",
-    2: "card--sad",
-    3: "card--tired",
-    4: "card--calm",
-    5: "card--happy",
-    6: "card--amazing",
-  };
-  return classes[mood];
-};
-
-// Обчислює середній настрій та повертає його числове значення
-function getMiddleValueOfMood() {
-  if (app.moodRecords.length === 0) {
-    return 0;
-  }
-
-  let sum = 0;
-  for (let i = 0; i < app.moodRecords.length; i++) {
-    sum += app.moodRecords[i].mood;
-  }
-  return sum / app.moodRecords.length;
-}
-
 // Зчитує настрій з форми додає запис в масив та виклик розрахунок
 function addMoodRecord(event) {
   event.preventDefault();
@@ -163,20 +147,9 @@ function addMoodRecord(event) {
     note: noteText,
   });
 
-  updateSummaryUI(getMiddleValueOfMood());
-
   form.reset();
   if (charCounter) {
     charCounter.textContent = `Залишилось символів: ${MAX_CHARS}`;
-  }
-}
-
-// Оновлює UI з підсумком настрою
-function updateSummaryUI(average_value) {
-  const status = average_value >= 3.5 ? "гарний тиждень" : "важкий тиждень";
-  const avgElement = document.querySelector("#avg-mood");
-  if (avgElement) {
-    avgElement.textContent = `Середній настрій: ${average_value.toFixed(1)} / 6 (${status})`;
   }
 }
 
@@ -196,8 +169,6 @@ inputComment.addEventListener("input", () => {
 
 form.addEventListener("submit", addMoodRecord);
 
-updateSummaryUI(getMiddleValueOfMood());
-
 // Завантажує записи з JSONPlaceholder: https://jsonplaceholder.typicode.com/comments?postId=1
 async function loadData() {
   hideError();
@@ -210,7 +181,7 @@ async function loadData() {
     console.log(data);
 
     const adaptedRecords = data.map((item) => ({
-      id: item.id,
+      id: `api-${item.id}`,
       date: item.name,
       note: item.body,
       email: item.email,
@@ -218,7 +189,6 @@ async function loadData() {
     }));
 
     app.moodRecords.push(...adaptedRecords);
-    updateSummaryUI(getMiddleValueOfMood());
   } catch (error) {
     console.error("Не вдалося завантажити записи:", error);
     showError("Записи тимчасово недоступні");
@@ -229,5 +199,4 @@ async function loadData() {
 
 refreshButton.addEventListener("click", loadData);
 
-updateSummaryUI(getMiddleValueOfMood());
 loadData();
