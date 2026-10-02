@@ -24,9 +24,36 @@
         <main>
           <section>
             <h2>Відмітити настрій</h2>
-            <!-- Форма лишається без змін -->
+
             <form id="mood-form" action="#" method="post">
-              <!-- ...поля форми... -->
+              <div class="mood-field">
+                <label for="mood-value">Настрій (число від 1 до 6):</label>
+                <input
+                  type="number"
+                  id="mood-value"
+                  name="mood"
+                  min="1"
+                  max="6"
+                  step="1"
+                  required
+                />
+                <small class="mood-hint"
+                  >1 — дуже сумний, 6 — неймовірний</small
+                >
+              </div>
+
+              <div>
+                <label for="mood-comment">Думки та нотатки протягом дня:</label>
+                <textarea
+                  id="mood-comment"
+                  name="comment"
+                  rows="3"
+                  maxlength="200"
+                  required
+                ></textarea>
+                <small id="char-counter">Залишилось символів: 200</small>
+              </div>
+              <button type="submit">Зберегти настрій</button>
             </form>
           </section>
 
@@ -36,14 +63,14 @@
             <p id="error-message" class="error-state" role="alert" hidden></p>
 
             <div class="cards" id="mood-history">
-              <!-- Спрощений виклик без index -->
               <mood-entry
                 v-for="record in moodRecords"
                 :key="record.id"
                 :date="record.date"
                 :mood="record.mood"
                 :note="record.note"
-              />
+                :email="record.email"
+              ></mood-entry>
             </div>
           </section>
         </main>

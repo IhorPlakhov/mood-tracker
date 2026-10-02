@@ -1,19 +1,58 @@
 const MoodEntry = {
   props: {
+    id: [Number, String],
     date: String,
     mood: Number,
     note: String,
+    email: {
+      type: String,
+      default: "",
+    },
+  },
+  emits: ["update-mood"],
+  computed: {
+    emoji() {
+      const emojiMap = {
+        1: "😭",
+        2: "🙁",
+        3: "🥱",
+        4: "😐",
+        5: "😊",
+        6: "🤩",
+      };
+      return emojiMap[this.mood] || "😐";
+    },
+    moodClass() {
+      const classes = {
+        1: "card--very-sad",
+        2: "card--sad",
+        3: "card--tired",
+        4: "card--calm",
+        5: "card--happy",
+        6: "card--amazing",
+      };
+      return classes[this.mood] || "";
+    },
+  },
+  methods: {
+    promoteMood() {
+      const nextMood = this.mood >= 6 ? 1 : this.mood + 1;
+      this.$emit("update-mood", { id: this.id, newMood: nextMood });
+    },
   },
   template: `
-    <article class="card">
-      <h3>{{ date }}</h3>
-      <p>Оцінка: {{ mood }}/6</p>
+    <article class="card" :class="moodClass">
+      <div class="card__header">
+        <h3>{{ date }}</h3>
+        <span class="card__emoji">{{ emoji }}</span>
+      </div>
+      <small v-if="email" class="card__email">{{ email }}</small>
       <p>{{ note }}</p>
     </article>
   `,
 };
 
-Vue.createApp({
+const app = Vue.createApp({
   components: {
     MoodEntry,
   },
@@ -26,6 +65,15 @@ Vue.createApp({
       ],
     };
   },
+  methods: {
+    handleMoodUpdate({ id, newMood }) {
+      const target = this.moodRecords.find((record) => record.id === id);
+      if (target) {
+        target.mood = newMood;
+        updateSummaryUI(getMiddleValueOfMood());
+      }
+    },
+  },
 }).mount("#app");
 
 const MAX_CHARS = 200;
@@ -36,7 +84,6 @@ const form = document.querySelector("#mood-form");
 const submitButton = form.querySelector('button[type="submit"]');
 const inputComment = document.querySelector("#mood-comment");
 const charCounter = document.querySelector("#char-counter");
-const listContainer = document.querySelector("#mood-history");
 const refreshButton = document.querySelector("#refresh-button");
 const inputMood = document.querySelector("#mood-value");
 const errorBox = document.querySelector("#error-message");
@@ -119,36 +166,9 @@ function addMoodRecord(event) {
   updateSummaryUI(getMiddleValueOfMood());
 
   form.reset();
-  charCounter.textContent = `Залишилось символів: ${MAX_CHARS}`;
-}
-
-// Оновлює блоки з записами настрою
-function renderMoodHistory(records) {
-  listContainer.innerHTML = "";
-
-  records.forEach((record) => {
-    const card = document.createElement("article");
-    card.classList.add("card");
-
-    card.classList.add(moodToLabel(record.mood));
-
-    const dateTitle = document.createElement("h3");
-    dateTitle.textContent = record.date;
-    const noteText = document.createElement("p");
-    noteText.textContent = record.note;
-
-    card.append(dateTitle);
-
-    if (record.email) {
-      const emailText = document.createElement("small");
-      emailText.textContent = record.email;
-      emailText.classList.add("card__email");
-      card.append(emailText);
-    }
-
-    card.append(noteText);
-    listContainer.append(card);
-  });
+  if (charCounter) {
+    charCounter.textContent = `Залишилось символів: ${MAX_CHARS}`;
+  }
 }
 
 // Оновлює UI з підсумком настрою
@@ -176,15 +196,12 @@ inputComment.addEventListener("input", () => {
 
 form.addEventListener("submit", addMoodRecord);
 
-renderMoodHistory(moodRecords);
 updateSummaryUI(getMiddleValueOfMood());
 
 // Завантажує записи з JSONPlaceholder: https://jsonplaceholder.typicode.com/comments?postId=1
 async function loadData() {
   hideError();
   if (submitButton) submitButton.disabled = true;
-  listContainer.innerHTML =
-    '<p class="loading-state">Завантаження даних...</p>';
 
   try {
     const response = await fetch(API_URL);
@@ -200,12 +217,10 @@ async function loadData() {
       mood: API_MOOD,
     }));
 
-    moodRecords.push(...adaptedRecords);
-    renderMoodHistory(moodRecords);
+    app.moodRecords.push(...adaptedRecords);
     updateSummaryUI(getMiddleValueOfMood());
   } catch (error) {
     console.error("Не вдалося завантажити записи:", error);
-    renderMoodHistory(moodRecords);
     showError("Записи тимчасово недоступні");
   } finally {
     if (submitButton) submitButton.disabled = false;
