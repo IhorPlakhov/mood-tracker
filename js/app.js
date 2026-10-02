@@ -42,11 +42,11 @@ const MoodEntry = {
   },
   template: `
     <article class="card" :class="moodClass">
-      <div class="card__header">
+      <div class="card-header">
         <h3>{{ date }}</h3>
-        <span class="card__emoji">{{ emoji }}</span>
+        <span class="card-emoji">{{ emoji }}</span>
       </div>
-      <small v-if="email" class="card__email">{{ email }}</small>
+      <small v-if="email" class="card-email">{{ email }}</small>
       <p>{{ note }}</p>
     </article>
   `,
