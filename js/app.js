@@ -101,6 +101,8 @@ const MAX_CHARS = 200;
 const API_URL = "https://jsonplaceholder.typicode.com/comments?postId=1";
 const API_MOOD = 4;
 const STORAGE_KEY = "moodEntries";
+const DB_NAME = "MoodTrackerDB";
+const STORE_NAME = "moodEntries";
 
 const form = document.querySelector("#mood-form");
 const submitButton = form.querySelector('button[type="submit"]');
@@ -229,4 +231,38 @@ function loadFromLocalStorage() {
     console.error("Пошкоджені дані в localStorage:", error);
     return [];
   }
+}
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1);
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: "id" });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function addItem(item) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    tx.objectStore(STORE_NAME).put(item);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function getAllItems() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, "readonly");
+    const request = tx.objectStore(STORE_NAME).getAll();
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
 }
