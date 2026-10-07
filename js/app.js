@@ -57,12 +57,22 @@ const app = Vue.createApp({
     MoodEntry,
   },
   data() {
+    const savedRecords = loadFromLocalStorage();
+
     return {
-      moodRecords: [
-        { id: 1, date: "2026-09-06", mood: 4, note: "Стандартний день" },
-        { id: 2, date: "2026-09-04", mood: 5, note: "Просто гарний день" },
-        { id: 3, date: "2026-09-03", mood: 3, note: "Багато працював" },
-      ],
+      moodRecords:
+        savedRecords.length > 0
+          ? savedRecords
+          : [
+              { id: 1, date: "2026-09-06", mood: 4, note: "Стандартний день" },
+              {
+                id: 2,
+                date: "2026-09-04",
+                mood: 5,
+                note: "Просто гарний день",
+              },
+              { id: 3, date: "2026-09-03", mood: 3, note: "Багато працював" },
+            ],
     };
   },
   computed: {
@@ -81,6 +91,7 @@ const app = Vue.createApp({
       const target = this.moodRecords.find((record) => record.id === id);
       if (target) {
         target.mood = newMood;
+        saveToLocalStorage(this.moodRecords);
       }
     },
   },
@@ -89,6 +100,7 @@ const app = Vue.createApp({
 const MAX_CHARS = 200;
 const API_URL = "https://jsonplaceholder.typicode.com/comments?postId=1";
 const API_MOOD = 4;
+const STORAGE_KEY = "moodEntries";
 
 const form = document.querySelector("#mood-form");
 const submitButton = form.querySelector('button[type="submit"]');
@@ -147,6 +159,8 @@ function addMoodRecord(event) {
     note: noteText,
   });
 
+  saveToLocalStorage(app.moodRecords);
+
   form.reset();
   if (charCounter) {
     charCounter.textContent = `Залишилось символів: ${MAX_CHARS}`;
@@ -186,6 +200,7 @@ async function loadData() {
       note: item.body,
       email: item.email,
       mood: API_MOOD,
+      isApi: true,
     }));
 
     app.moodRecords.push(...adaptedRecords);
@@ -200,3 +215,18 @@ async function loadData() {
 refreshButton.addEventListener("click", loadData);
 
 loadData();
+
+function saveToLocalStorage(items) {
+  const userRecords = items.filter((item) => !item.isApi);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(userRecords));
+}
+
+function loadFromLocalStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (error) {
+    console.error("Пошкоджені дані в localStorage:", error);
+    return [];
+  }
+}
