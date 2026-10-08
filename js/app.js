@@ -52,51 +52,6 @@ const MoodEntry = {
   `,
 };
 
-const app = Vue.createApp({
-  components: {
-    MoodEntry,
-  },
-  data() {
-    const savedRecords = loadFromLocalStorage();
-
-    return {
-      moodRecords:
-        savedRecords.length > 0
-          ? savedRecords
-          : [
-              { id: 1, date: "2026-09-06", mood: 4, note: "Стандартний день" },
-              {
-                id: 2,
-                date: "2026-09-04",
-                mood: 5,
-                note: "Просто гарний день",
-              },
-              { id: 3, date: "2026-09-03", mood: 3, note: "Багато працював" },
-            ],
-    };
-  },
-  computed: {
-    average() {
-      if (this.moodRecords.length === 0) return 0;
-      const sum = this.moodRecords.reduce((acc, r) => acc + r.mood, 0);
-      return sum / this.moodRecords.length;
-    },
-    summaryText() {
-      const status = this.average >= 3.5 ? "гарний тиждень" : "важкий тиждень";
-      return `Середній настрій: ${this.average.toFixed(1)} / 6 (${status})`;
-    },
-  },
-  methods: {
-    handleMoodUpdate({ id, newMood }) {
-      const target = this.moodRecords.find((record) => record.id === id);
-      if (target) {
-        target.mood = newMood;
-        saveToLocalStorage(this.moodRecords);
-      }
-    },
-  },
-}).mount("#app");
-
 const MAX_CHARS = 200;
 const API_URL = "https://jsonplaceholder.typicode.com/comments?postId=1";
 const API_MOOD = 4;
@@ -111,6 +66,55 @@ const charCounter = document.querySelector("#char-counter");
 const refreshButton = document.querySelector("#refresh-button");
 const inputMood = document.querySelector("#mood-value");
 const errorBox = document.querySelector("#error-message");
+
+const app = Vue.createApp({
+  components: {
+    MoodEntry,
+  },
+  data() {
+    return {
+      moodRecords: [],
+    };
+  },
+  computed: {
+    average() {
+      if (this.moodRecords.length === 0) return 0;
+      const sum = this.moodRecords.reduce((acc, r) => acc + r.mood, 0);
+      return sum / this.moodRecords.length;
+    },
+    summaryText() {
+      const status = this.average >= 3.5 ? "гарний тиждень" : "важкий тиждень";
+      return `Середній настрій: ${this.average.toFixed(1)} / 6 (${status})`;
+    },
+  },
+  methods: {
+    async handleMoodUpdate({ id, newMood }) {
+      const target = this.moodRecords.find((record) => record.id === id);
+      if (target) {
+        target.mood = newMood;
+        if (!target.isApi) {
+          await addItem(target);
+          const dbRecords = await getAllItems();
+          const apiRecords = this.moodRecords.filter((r) => r.isApi);
+          this.moodRecords = [...dbRecords, ...apiRecords];
+        }
+      }
+    },
+  },
+
+  async mounted() {
+    try {
+      await migrateFromLocalStorage();
+
+      this.moodRecords = await getAllItems();
+
+      await loadData();
+    } catch (error) {
+      console.error("Помилка при ініціалізації IndexedDB:", error);
+      showError("Не вдалося відкрити базу даних IndexedDB.");
+    }
+  },
+}).mount("#app");
 
 function validateMoodInput() {
   const raw = inputMood.value.trim();
@@ -141,7 +145,7 @@ function hideError() {
 }
 
 // Зчитує настрій з форми додає запис в масив та виклик розрахунок
-function addMoodRecord(event) {
+async function addMoodRecord(event) {
   event.preventDefault();
   validateMoodInput();
 
@@ -154,14 +158,17 @@ function addMoodRecord(event) {
   const currentDate = new Date().toLocaleDateString("sv-SE");
   const noteText = inputComment.value.trim();
 
-  app.moodRecords.unshift({
-    id: Date.now(),
+  const newRecord = {
     date: currentDate,
     mood: currentMood,
     note: noteText,
-  });
+  };
 
-  saveToLocalStorage(app.moodRecords);
+  await addItem(newRecord);
+
+  const dbRecords = await getAllItems();
+  const apiRecords = app.moodRecords.filter((r) => r.isApi);
+  app.moodRecords = [...dbRecords, ...apiRecords];
 
   form.reset();
   if (charCounter) {
@@ -216,8 +223,6 @@ async function loadData() {
 
 refreshButton.addEventListener("click", loadData);
 
-loadData();
-
 function saveToLocalStorage(items) {
   const userRecords = items.filter((item) => !item.isApi);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(userRecords));
@@ -239,7 +244,10 @@ function openDB() {
     request.onupgradeneeded = (event) => {
       const db = event.target.result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME, { keyPath: "id" });
+        db.createObjectStore(STORE_NAME, {
+          keyPath: "id",
+          autoIncrement: true,
+        });
       }
     };
     request.onsuccess = () => resolve(request.result);
@@ -265,4 +273,20 @@ async function getAllItems() {
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
+}
+
+async function migrateFromLocalStorage() {
+  if (localStorage.getItem("migrated") === "true") {
+    return;
+  }
+
+  const existingInDB = await getAllItems();
+  const localItems = loadFromLocalStorage();
+
+  if (existingInDB.length === 0 && localItems.length > 0) {
+    for (const item of localItems) {
+      await addItem(item);
+    }
+    localStorage.setItem("migrated", "true");
+  }
 }
