@@ -239,6 +239,7 @@ function loadFromLocalStorage() {
   }
 }
 
+// Відкриває базу даних або створює сховище moodEntries
 function openDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, 1);
@@ -256,6 +257,7 @@ function openDB() {
   });
 }
 
+// Додає новий або оновлює існуючий запис
 async function addItem(item) {
   const db = await openDB();
   return new Promise((resolve, reject) => {
@@ -266,6 +268,7 @@ async function addItem(item) {
   });
 }
 
+// Зчитує всі записи з бази даних
 async function getAllItems() {
   const db = await openDB();
   return new Promise((resolve, reject) => {
@@ -276,6 +279,7 @@ async function getAllItems() {
   });
 }
 
+// Виконує перенесення даних із localStorage в IndexedDB
 async function migrateFromLocalStorage() {
   if (localStorage.getItem("migrated") === "true") {
     return;
