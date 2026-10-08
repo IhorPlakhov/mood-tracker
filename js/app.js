@@ -59,14 +59,6 @@ const STORAGE_KEY = "moodEntries";
 const DB_NAME = "MoodTrackerDB";
 const STORE_NAME = "moodEntries";
 
-const form = document.querySelector("#mood-form");
-const submitButton = form.querySelector('button[type="submit"]');
-const inputComment = document.querySelector("#mood-comment");
-const charCounter = document.querySelector("#char-counter");
-const refreshButton = document.querySelector("#refresh-button");
-const inputMood = document.querySelector("#mood-value");
-const errorBox = document.querySelector("#error-message");
-
 const app = Vue.createApp({
   components: {
     MoodEntry,
@@ -93,7 +85,8 @@ const app = Vue.createApp({
       if (target) {
         target.mood = newMood;
         if (!target.isApi) {
-          await addItem(target);
+          const recordToSave = { ...target };
+          await addItem(recordToSave);
           const dbRecords = await getAllItems();
           const apiRecords = this.moodRecords.filter((r) => r.isApi);
           this.moodRecords = [...dbRecords, ...apiRecords];
@@ -115,6 +108,14 @@ const app = Vue.createApp({
     }
   },
 }).mount("#app");
+
+const form = document.querySelector("#mood-form");
+const submitButton = form.querySelector('button[type="submit"]');
+const inputComment = document.querySelector("#mood-comment");
+const charCounter = document.querySelector("#char-counter");
+const refreshButton = document.querySelector("#refresh-button");
+const inputMood = document.querySelector("#mood-value");
+const errorBox = document.querySelector("#error-message");
 
 function validateMoodInput() {
   const raw = inputMood.value.trim();
