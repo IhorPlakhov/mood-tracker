@@ -89,11 +89,14 @@ const app = Vue.createApp({
       return this.moodRecords.filter((r) => !r.isApi).slice(-MAX_CHART_RECORDS);
     },
     average() {
-      if (this.moodRecords.length === 0) return 0;
-      const sum = this.moodRecords.reduce((acc, r) => acc + r.mood, 0);
-      return sum / this.moodRecords.length;
+      const ownRecords = this.moodRecords.filter((r) => !r.isApi);
+      if (ownRecords.length === 0) return 0;
+      const sum = ownRecords.reduce((acc, r) => acc + r.mood, 0);
+      return sum / ownRecords.length;
     },
     summaryText() {
+      const hasRecords = this.moodRecords.some((r) => !r.isApi);
+      if (!hasRecords) return "Поки немає записів";
       const status = this.average >= 3.5 ? "гарний тиждень" : "важкий тиждень";
       return `Середній настрій: ${this.average.toFixed(1)} / 6 (${status})`;
     },
@@ -156,10 +159,10 @@ const app = Vue.createApp({
 
       const w = canvas.width;
       const h = canvas.height;
-      const padLeft = 28;
-      const padRight = 16;
-      const padTop = 18;
-      const padBottom = 24;
+      const padLeft = 32;
+      const padRight = 24;
+      const padTop = 36;
+      const padBottom = 28;
 
       ctx.clearRect(0, 0, w, h);
       ctx.font = "11px 'Plus Jakarta Sans', sans-serif";
@@ -309,15 +312,19 @@ const app = Vue.createApp({
 
     async ensureDataLoaded() {
       if (this.isDataInitialized) return;
-      try {
-        await migrateFromLocalStorage();
-        this.moodRecords = await getAllItems();
-        await this.loadApiData();
-        this.isDataInitialized = true;
-      } catch (error) {
-        console.error("Помилка при ініціалізації IndexedDB:", error);
-        this.errorMessage = "Не вдалося відкрити базу даних IndexedDB.";
+      if (!this._initPromise) {
+        this._initPromise = (async () => {
+          await migrateFromLocalStorage();
+          this.moodRecords = await getAllItems();
+          await this.loadApiData();
+          this.isDataInitialized = true;
+        })().catch((error) => {
+          this._initPromise = null;
+          console.error("Помилка при ініціалізації IndexedDB:", error);
+          this.errorMessage = "Не вдалося відкрити базу даних IndexedDB.";
+        });
       }
+      return this._initPromise;
     },
 
     async loadApiData() {
@@ -468,7 +475,11 @@ function matchRoute(path) {
     for (let i = 0; i < routeParts.length; i++) {
       if (routeParts[i].startsWith(":")) {
         const paramName = routeParts[i].slice(1);
-        params[paramName] = decodeURIComponent(pathParts[i]);
+        try {
+          params[paramName] = decodeURIComponent(pathParts[i]);
+        } catch {
+          return null;
+        }
       } else if (routeParts[i] !== pathParts[i]) {
         isMatch = false;
         break;
