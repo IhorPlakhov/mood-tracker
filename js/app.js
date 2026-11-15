@@ -89,14 +89,15 @@ const app = Vue.createApp({
       return this.moodRecords.filter((r) => !r.isApi).slice(-MAX_CHART_RECORDS);
     },
     average() {
-      const ownRecords = this.moodRecords.filter((r) => !r.isApi);
-      if (ownRecords.length === 0) return 0;
-      const sum = ownRecords.reduce((acc, r) => acc + r.mood, 0);
-      return sum / ownRecords.length;
+      const records = this.recentUserRecords;
+      if (records.length === 0) return 0;
+      const sum = records.reduce((acc, r) => acc + r.mood, 0);
+      return sum / records.length;
     },
     summaryText() {
-      const hasRecords = this.moodRecords.some((r) => !r.isApi);
-      if (!hasRecords) return "Поки немає записів";
+      if (this.recentUserRecords.length === 0) {
+        return "Поки немає записів";
+      }
       const status = this.average >= 3.5 ? "гарний тиждень" : "важкий тиждень";
       return `Середній настрій: ${this.average.toFixed(1)} / 6 (${status})`;
     },
