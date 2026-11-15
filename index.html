@@ -17,63 +17,92 @@
   <body>
     <header>
       <h1>Трекер настрою</h1>
+      <nav class="main-nav">
+        <a href="#/" data-link class="nav-link" data-route="/">Додати запис</a>
+        <a href="#/history" data-link class="nav-link" data-route="/history"
+          >Історія</a
+        >
+        <a href="#/stats" data-link class="nav-link" data-route="/stats"
+          >Статистика</a
+        >
+      </nav>
     </header>
 
-    <div class="layout" id="app">
-      <main>
-        <section>
-          <h2>Відмітити настрій</h2>
+    <main class="layout" id="app">
+      // Маршрут "/" — форма швидкого додавання //
+      <section v-if="currentView === 'home'">
+        <h2>Відмітити настрій</h2>
 
-          <form id="mood-form" action="#" method="post">
-            <div class="mood-field">
-              <label for="mood-value">Настрій (число від 1 до 6):</label>
-              <input
-                type="number"
-                id="mood-value"
-                name="mood"
-                min="1"
-                max="6"
-                step="1"
-                required
-              />
-              <small class="mood-hint">1 — дуже сумний, 6 — неймовірний</small>
-            </div>
-
-            <div>
-              <label for="mood-comment">Думки та нотатки протягом дня:</label>
-              <textarea
-                id="mood-comment"
-                name="comment"
-                rows="3"
-                maxlength="200"
-                required
-              ></textarea>
-              <small id="char-counter">Залишилось символів: 200</small>
-            </div>
-            <button type="submit">Зберегти настрій</button>
-          </form>
-        </section>
-
-        <section>
-          <h2>Історія записів</h2>
-          <button type="button" id="refresh-button" hidden>Оновити</button>
-          <p id="error-message" class="error-state" role="alert" hidden></p>
-
-          <div class="cards" id="mood-history">
-            <mood-entry
-              v-for="record in moodRecords"
-              :key="record.id"
-              :id="record.id"
-              :date="record.date"
-              :mood="record.mood"
-              :note="record.note"
-              :email="record.email"
-              @update-mood="handleMoodUpdate"
-            ></mood-entry>
+        <form id="mood-form" @submit.prevent="addMoodRecord">
+          <div class="mood-field">
+            <label for="mood-value">Настрій (число від 1 до 6):</label>
+            <input
+              type="number"
+              id="mood-value"
+              name="mood"
+              min="1"
+              max="6"
+              step="1"
+              v-model="draftMood"
+              required
+            />
+            <small class="mood-hint">1 — дуже сумний, 6 — неймовірний</small>
           </div>
-        </section>
-      </main>
-      <aside>
+
+          <div>
+            <label for="mood-comment">Думки та нотатки протягом дня:</label>
+            <textarea
+              id="mood-comment"
+              name="comment"
+              rows="3"
+              maxlength="200"
+              v-model="draftComment"
+              required
+            ></textarea>
+            <small id="char-counter"
+              >Залишилось символів: {{ remainingChars }}</small
+            >
+          </div>
+          <button type="submit" :disabled="isLoading">Зберегти настрій</button>
+        </form>
+      </section>
+
+      // Маршрут "/history" — повна історія записів
+      <section v-else-if="currentView === 'history'">
+        <h2>Історія записів</h2>
+        <button
+          type="button"
+          id="refresh-button"
+          v-if="errorMessage"
+          @click="loadApiData"
+        >
+          Оновити
+        </button>
+        <p
+          id="error-message"
+          class="error-state"
+          role="alert"
+          v-if="errorMessage"
+        >
+          {{ errorMessage }}
+        </p>
+
+        <div class="cards" id="mood-history">
+          <mood-entry
+            v-for="record in moodRecords"
+            :key="record.id"
+            :id="record.id"
+            :date="record.date"
+            :mood="record.mood"
+            :note="record.note"
+            :email="record.email"
+            @update-mood="handleMoodUpdate"
+          ></mood-entry>
+        </div>
+      </section>
+
+      // Маршрут "/stats" — середнє значення та динаміка
+      <section v-else-if="currentView === 'stats'">
         <h2>Статистика та підсумок тижня</h2>
         <p id="avg-mood">{{ summaryText }}</p>
 
@@ -81,8 +110,42 @@
           <h3>Динаміка настрою</h3>
           <canvas id="chart" width="320" height="200"></canvas>
         </div>
-      </aside>
-    </div>
+      </section>
+
+      // Маршрут "/entry/:id" - сторінка деталей конкретного запису
+      <section v-else-if="currentView === 'details'">
+        <h2>Деталі запису</h2>
+
+        <article v-if="selectedEntry" class="card details-card">
+          <div class="card-header">
+            <h3>{{ selectedEntry.date }}</h3>
+            <span class="card-emoji">{{ getEmoji(selectedEntry.mood) }}</span>
+          </div>
+          <p><strong>Оцінка настрою:</strong> {{ selectedEntry.mood }} / 6</p>
+          <p v-if="selectedEntry.email">
+            <strong>Автор (Email):</strong> {{ selectedEntry.email }}
+          </p>
+          <p><strong>Нотатка:</strong> {{ selectedEntry.note }}</p>
+          <a href="#/history" data-link class="back-link"
+            >← Повернутися до історії</a
+          >
+        </article>
+
+        <div v-else class="not-found">
+          <p>Запис із таким ID не знайдено.</p>
+          <a href="#/history" data-link class="back-link"
+            >← До історії записів</a
+          >
+        </div>
+      </section>
+
+      // Неіснуючий маршрут 404
+      <section v-else class="not-found">
+        <h2>404 — Сторінку не знайдено</h2>
+        <p>Ви перейшли за неіснуючою адресою.</p>
+        <a href="#/" data-link class="back-link">Повернутися на головну</a>
+      </section>
+    </main>
 
     <footer>
       <p>&copy;Навчальний проєкт «Трекер настрою». Автор: Ігор Плахов.</p>
