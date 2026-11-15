@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1,
+    "date": "2026-11-10",
+    "mood": 4,
+    "email": "igor.plakhov@example.com",
+    "note": "Спокійний день."
+  },
+  {
+    "id": 2,
+    "date": "2026-11-11",
+    "mood": 2,
+    "email": "igor.plakhov@example.com",
+    "note": "Трохи втомився через дедлайни, але ввечері добре відпочив."
+  },
+  {
+    "id": 3,
+    "date": "2026-11-12",
+    "mood": 5,
+    "email": "igor.plakhov@example.com",
+    "note": "Продуктивно попрацював над трекером настрою."
+  },
+  {
+    "id": 4,
+    "date": "2026-11-13",
+    "mood": 3,
+    "email": "igor.plakhov@example.com",
+    "note": "Звичайний день, багато дрібних справ."
+  },
+  {
+    "id": 5,
+    "date": "2026-11-14",
+    "mood": 6,
+    "email": "igor.plakhov@example.com",
+    "note": "Чудовий настрій"
+  },
+  {
+    "id": 6,
+    "date": "2026-11-15",
+    "mood": 5,
+    "email": "igor.plakhov@example.com",
+    "note": "Підключаю власний сервер на Node.js та Express."
+  }
+]
