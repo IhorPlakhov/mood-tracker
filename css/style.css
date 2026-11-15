@@ -270,3 +270,21 @@ footer p {
   font-size: 1.5rem;
   line-height: 1;
 }
+
+.chart-wrapper {
+  margin-top: 1.5rem;
+}
+
+.chart-wrapper h3 {
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+#chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
