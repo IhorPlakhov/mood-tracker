@@ -67,6 +67,13 @@ const app = Vue.createApp({
   },
   data() {
     return {
+      currentView: "home",
+      selectedEntry: null,
+      draftMood: "",
+      draftComment: "",
+      isDataInitialized: false,
+      isLoading: false,
+      errorMessage: "",
       moodRecords: [],
       animationId: null,
       animProgress: 0,
@@ -75,6 +82,9 @@ const app = Vue.createApp({
     };
   },
   computed: {
+    remainingChars() {
+      return MAX_CHARS - this.draftComment.length;
+    },
     recentUserRecords() {
       return this.moodRecords.filter((r) => !r.isApi).slice(-MAX_CHART_RECORDS);
     },
@@ -91,7 +101,9 @@ const app = Vue.createApp({
   watch: {
     recentUserRecords: {
       handler() {
-        this.startChartAnimation();
+        if (this.currentView === "stats") {
+          this.startChartAnimation();
+        }
       },
       deep: true,
     },
@@ -289,19 +301,98 @@ const app = Vue.createApp({
         }
       });
     },
-  },
 
-  async mounted() {
-    try {
-      await migrateFromLocalStorage();
-      this.moodRecords = await getAllItems();
-      this.setupCanvasHover();
-      this.startChartAnimation();
-      await loadData();
-    } catch (error) {
-      console.error("Помилка при ініціалізації IndexedDB:", error);
-      showError("Не вдалося відкрити базу даних IndexedDB.");
-    }
+    getEmoji(mood) {
+      const emojiMap = { 1: "😭", 2: "🙁", 3: "🥱", 4: "😐", 5: "😊", 6: "🤩" };
+      return emojiMap[mood] || "😐";
+    },
+
+    async ensureDataLoaded() {
+      if (this.isDataInitialized) return;
+      try {
+        await migrateFromLocalStorage();
+        this.moodRecords = await getAllItems();
+        await this.loadApiData();
+        this.isDataInitialized = true;
+      } catch (error) {
+        console.error("Помилка при ініціалізації IndexedDB:", error);
+        this.errorMessage = "Не вдалося відкрити базу даних IndexedDB.";
+      }
+    },
+
+    async loadApiData() {
+      this.errorMessage = "";
+      this.isLoading = true;
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) throw new Error(`Код ${response.status}`);
+        const data = await response.json();
+
+        const adaptedRecords = data.map((item) => ({
+          id: `api-${item.id}`,
+          date: item.name,
+          note: item.body,
+          email: item.email,
+          mood: API_MOOD,
+          isApi: true,
+        }));
+
+        const userRecords = this.moodRecords.filter((r) => !r.isApi);
+        this.moodRecords = [...userRecords, ...adaptedRecords];
+      } catch (error) {
+        this.errorMessage = "Записи тимчасово недоступні";
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    async addMoodRecord(event) {
+      const form = event.target;
+      const inputMood = form.querySelector("#mood-value");
+      const inputComment = form.querySelector("#mood-comment");
+
+      const rawMood = String(this.draftMood).trim();
+      const moodNum = Number(rawMood);
+
+      if (rawMood === "") {
+        inputMood.setCustomValidity("Введіть оцінку настрою від 1 до 6.");
+      } else if (!Number.isInteger(moodNum)) {
+        inputMood.setCustomValidity("Настрій має бути цілим числом.");
+      } else if (moodNum < 1 || moodNum > 6) {
+        inputMood.setCustomValidity("Настрій має бути в діапазоні від 1 до 6.");
+      } else {
+        inputMood.setCustomValidity("");
+      }
+
+      if (
+        this.draftComment.length > 0 &&
+        this.draftComment.trim().length === 0
+      ) {
+        inputComment.setCustomValidity(
+          "Нотатка не може складатися лише з пробілів.",
+        );
+      } else {
+        inputComment.setCustomValidity("");
+      }
+
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      await addItem({
+        date: new Date().toLocaleDateString("sv-SE"),
+        mood: moodNum,
+        note: this.draftComment.trim(),
+      });
+
+      const dbRecords = await getAllItems();
+      const apiRecords = this.moodRecords.filter((r) => r.isApi);
+      this.moodRecords = [...dbRecords, ...apiRecords];
+
+      this.draftMood = "";
+      this.draftComment = "";
+    },
   },
 
   beforeUnmount() {
@@ -311,120 +402,129 @@ const app = Vue.createApp({
   },
 }).mount("#app");
 
-const form = document.querySelector("#mood-form");
-const submitButton = form.querySelector('button[type="submit"]');
-const inputComment = document.querySelector("#mood-comment");
-const charCounter = document.querySelector("#char-counter");
-const refreshButton = document.querySelector("#refresh-button");
-const inputMood = document.querySelector("#mood-value");
-const errorBox = document.querySelector("#error-message");
+// функції для кожного маршруту
+async function renderHomeView() {
+  app.selectedEntry = null;
+  app.currentView = "home";
+  await app.ensureDataLoaded();
+}
 
-function validateMoodInput() {
-  const raw = inputMood.value.trim();
-  const value = Number(raw);
+async function renderHistoryView() {
+  app.selectedEntry = null;
+  app.currentView = "history";
+  await app.ensureDataLoaded();
+}
 
-  if (raw === "") {
-    inputMood.setCustomValidity("Введіть оцінку настрою від 1 до 6.");
-  } else if (!Number.isInteger(value)) {
-    inputMood.setCustomValidity("Настрій має бути цілим числом.");
-  } else if (value < 1 || value > 6) {
-    inputMood.setCustomValidity("Настрій має бути в діапазоні від 1 до 6.");
+async function renderStatsView() {
+  app.selectedEntry = null;
+  app.currentView = "stats";
+  await app.ensureDataLoaded();
+
+  app.$nextTick(() => {
+    app.setupCanvasHover();
+    app.startChartAnimation();
+  });
+}
+
+// сторінка деталей запису за :id
+async function renderEntryDetailsView(params) {
+  app.selectedEntry = null;
+  app.currentView = "details";
+  await app.ensureDataLoaded();
+
+  const found = app.moodRecords.find(
+    (item) => String(item.id) === String(params.id),
+  );
+  app.selectedEntry = found || null;
+}
+
+// неіснуючий маршрут 404
+function renderNotFoundView() {
+  app.selectedEntry = null;
+  app.currentView = "not-found";
+}
+
+// таблиця маршрутів
+const routes = [
+  { path: "/", view: renderHomeView },
+  { path: "/history", view: renderHistoryView },
+  { path: "/stats", view: renderStatsView },
+  { path: "/entry/:id", view: renderEntryDetailsView },
+];
+
+// зіставлення шляху з патернами та витяг параметрів
+function matchRoute(path) {
+  const cleanPath = path.replace(/\/+$/, "") || "/";
+  const pathParts = cleanPath.split("/").filter(Boolean);
+
+  for (const route of routes) {
+    const routeParts = route.path.split("/").filter(Boolean);
+
+    if (routeParts.length !== pathParts.length) continue;
+
+    const params = {};
+    let isMatch = true;
+
+    for (let i = 0; i < routeParts.length; i++) {
+      if (routeParts[i].startsWith(":")) {
+        const paramName = routeParts[i].slice(1);
+        params[paramName] = decodeURIComponent(pathParts[i]);
+      } else if (routeParts[i] !== pathParts[i]) {
+        isMatch = false;
+        break;
+      }
+    }
+
+    if (isMatch) {
+      return { route, params };
+    }
+  }
+
+  return null;
+}
+
+// зміна хеша для перемикання активного розділу
+function navigate(path) {
+  const normalizedPath = path.startsWith("#") ? path.slice(1) : path;
+  location.hash = `#${normalizedPath}`;
+}
+
+// підсвітка активного пункту меню
+function updateActiveNavLink(currentPath) {
+  document.querySelectorAll(".nav-link").forEach((link) => {
+    const linkRoute = link.getAttribute("data-route");
+    link.classList.toggle("active", linkRoute === currentPath);
+  });
+}
+
+// функція рендеру при зміні хеша або завантаженні
+async function render() {
+  const path = location.hash.slice(1) || "/";
+  updateActiveNavLink(path);
+
+  const matched = matchRoute(path);
+  if (matched) {
+    await matched.route.view(matched.params);
   } else {
-    inputMood.setCustomValidity("");
+    renderNotFoundView();
   }
 }
 
-inputMood.addEventListener("input", validateMoodInput);
+// обробка кліків по внутрішніх посиланнях
+document.addEventListener("click", (e) => {
+  const link = e.target.closest("a[data-link]");
+  if (!link) return;
 
-function showError(message) {
-  errorBox.textContent = message;
-  errorBox.hidden = false;
-  refreshButton.hidden = false;
-}
-
-function hideError() {
-  errorBox.hidden = true;
-  refreshButton.hidden = true;
-}
-
-// Зчитує настрій з форми додає запис в масив та виклик розрахунок
-async function addMoodRecord(event) {
-  event.preventDefault();
-  validateMoodInput();
-
-  if (!form.checkValidity()) {
-    form.reportValidity();
-    return;
-  }
-
-  const currentMood = Number(inputMood.value);
-  const currentDate = new Date().toLocaleDateString("sv-SE");
-  const noteText = inputComment.value.trim();
-
-  const newRecord = {
-    date: currentDate,
-    mood: currentMood,
-    note: noteText,
-  };
-
-  await addItem(newRecord);
-
-  const dbRecords = await getAllItems();
-  const apiRecords = app.moodRecords.filter((r) => r.isApi);
-  app.moodRecords = [...dbRecords, ...apiRecords];
-
-  form.reset();
-  if (charCounter) {
-    charCounter.textContent = `Залишилось символів: ${MAX_CHARS}`;
-  }
-}
-
-// Обробник події для лічильника символів
-inputComment.addEventListener("input", () => {
-  const remaining = MAX_CHARS - inputComment.value.length;
-  charCounter.textContent = `Залишилось символів: ${remaining}`;
-
-  if (inputComment.value.length > 0 && inputComment.value.trim().length === 0) {
-    inputComment.setCustomValidity(
-      "Нотатка не може складатися лише з пробілів.",
-    );
-  } else {
-    inputComment.setCustomValidity("");
+  e.preventDefault();
+  const href = link.getAttribute("href");
+  if (href) {
+    navigate(href);
   }
 });
 
-form.addEventListener("submit", addMoodRecord);
-
-// Завантажує записи з JSONPlaceholder: https://jsonplaceholder.typicode.com/comments?postId=1
-async function loadData() {
-  hideError();
-  if (submitButton) submitButton.disabled = true;
-
-  try {
-    const response = await fetch(API_URL);
-    if (!response.ok) throw new Error(`Код ${response.status}`);
-    const data = await response.json();
-    console.log(data);
-
-    const adaptedRecords = data.map((item) => ({
-      id: `api-${item.id}`,
-      date: item.name,
-      note: item.body,
-      email: item.email,
-      mood: API_MOOD,
-      isApi: true,
-    }));
-
-    app.moodRecords.push(...adaptedRecords);
-  } catch (error) {
-    console.error("Не вдалося завантажити записи:", error);
-    showError("Записи тимчасово недоступні");
-  } finally {
-    if (submitButton) submitButton.disabled = false;
-  }
-}
-
-refreshButton.addEventListener("click", loadData);
+// відстеження змін адреси після # та початкового запуску
+window.addEventListener("hashchange", render);
+window.addEventListener("DOMContentLoaded", render);
 
 function saveToLocalStorage(items) {
   const userRecords = items.filter((item) => !item.isApi);
