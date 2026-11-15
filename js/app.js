@@ -41,13 +41,14 @@ const MoodEntry = {
     },
   },
   template: `
-    <article class="card" :class="moodClass" @click="promoteMood">
+    <article class="card" :class="moodClass">
       <div class="card-header">
         <h3>{{ date }}</h3>
-        <span class="card-emoji">{{ emoji }}</span>
+        <span class="card-emoji" title="Натисніть, щоб змінити настрій" @click.stop="promoteMood">{{ emoji }}</span>
       </div>
       <small v-if="email" class="card-email">{{ email }}</small>
       <p>{{ note }}</p>
+      <a :href="'#/entry/' + id" data-link class="card-details-link">Детальніше →</a>
     </article>
   `,
 };
