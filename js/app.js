@@ -58,6 +58,7 @@ const API_MOOD = 4;
 const STORAGE_KEY = "moodEntries";
 const DB_NAME = "MoodTrackerDB";
 const STORE_NAME = "moodEntries";
+const MAX_CHART_RECORDS = 7;
 
 const app = Vue.createApp({
   components: {
@@ -66,9 +67,16 @@ const app = Vue.createApp({
   data() {
     return {
       moodRecords: [],
+      animationId: null,
+      animProgress: 0,
+      hoveredPoint: null,
+      renderedPoints: [],
     };
   },
   computed: {
+    recentUserRecords() {
+      return this.moodRecords.filter((r) => !r.isApi).slice(-MAX_CHART_RECORDS);
+    },
     average() {
       if (this.moodRecords.length === 0) return 0;
       const sum = this.moodRecords.reduce((acc, r) => acc + r.mood, 0);
@@ -77,6 +85,14 @@ const app = Vue.createApp({
     summaryText() {
       const status = this.average >= 3.5 ? "гарний тиждень" : "важкий тиждень";
       return `Середній настрій: ${this.average.toFixed(1)} / 6 (${status})`;
+    },
+  },
+  watch: {
+    recentUserRecords: {
+      handler() {
+        this.startChartAnimation();
+      },
+      deep: true,
     },
   },
   methods: {
@@ -93,18 +109,203 @@ const app = Vue.createApp({
         }
       }
     },
+
+    // Запуск циклу анімації
+    startChartAnimation() {
+      if (this.animationId) {
+        cancelAnimationFrame(this.animationId);
+        this.animationId = null;
+      }
+
+      this.animProgress = 0;
+
+      const animate = () => {
+        this.animProgress += 0.035;
+        if (this.animProgress > 1) this.animProgress = 1;
+
+        this.drawChart(this.animProgress);
+
+        if (this.animProgress < 1) {
+          this.animationId = requestAnimationFrame(animate);
+        } else {
+          this.animationId = null; // Анімація завершена
+        }
+      };
+
+      this.animationId = requestAnimationFrame(animate);
+    },
+
+    // побудова графіка на основі масиву об'єктів настрою
+    drawChart(progress = 1) {
+      const canvas = document.querySelector("#chart");
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+
+      const w = canvas.width;
+      const h = canvas.height;
+      const padLeft = 28;
+      const padRight = 16;
+      const padTop = 18;
+      const padBottom = 24;
+
+      ctx.clearRect(0, 0, w, h);
+      ctx.font = "11px 'Plus Jakarta Sans', sans-serif";
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+
+      for (let level = 1; level <= 6; level++) {
+        const y = padTop + ((6 - level) / 5) * (h - padTop - padBottom);
+        ctx.strokeStyle = "#e5e7eb";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(padLeft, y);
+        ctx.lineTo(w - padRight, y);
+        ctx.stroke();
+
+        ctx.fillStyle = "#6b7280";
+        ctx.fillText(level, padLeft - 8, y);
+      }
+
+      const records = this.recentUserRecords;
+      if (records.length === 0) {
+        this.renderedPoints = [];
+        ctx.fillStyle = "#6b7280";
+        ctx.font = "500 20px 'Plus Jakarta Sans', sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("Додайте запис настрою", w / 2, h / 2);
+        return;
+      }
+
+      const chartW = w - padLeft - padRight;
+      const chartH = h - padTop - padBottom;
+
+      // розрахунок координат для кожної точки
+      const points = records.map((rec, i) => {
+        const x =
+          records.length === 1
+            ? padLeft + chartW / 2
+            : padLeft + (i / (records.length - 1)) * chartW;
+        const y = padTop + ((6 - rec.mood) / 5) * chartH;
+        return { x, y, mood: rec.mood, date: rec.date.slice(5) };
+      });
+      this.renderedPoints = points;
+
+      ctx.strokeStyle = "#4f46e5";
+      ctx.lineWidth = 3;
+      ctx.lineJoin = "round";
+      ctx.lineCap = "round";
+      ctx.beginPath();
+
+      if (points.length === 1) {
+        ctx.moveTo(points[0].x, points[0].y);
+      } else {
+        const totalSegments = points.length - 1;
+        const currentPos = progress * totalSegments;
+        const fullSegments = Math.floor(currentPos);
+        const partial = currentPos - fullSegments;
+
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 0; i < fullSegments; i++) {
+          ctx.lineTo(points[i + 1].x, points[i + 1].y);
+        }
+        if (fullSegments < totalSegments) {
+          const p1 = points[fullSegments];
+          const p2 = points[fullSegments + 1];
+          const interpX = p1.x + (p2.x - p1.x) * partial;
+          const interpY = p1.y + (p2.y - p1.y) * partial;
+          ctx.lineTo(interpX, interpY);
+        }
+      }
+      ctx.stroke();
+
+      const maxVisibleIndex =
+        points.length === 1
+          ? 0
+          : Math.floor(progress * (points.length - 1) + 0.001);
+
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+
+      for (let i = 0; i <= maxVisibleIndex; i++) {
+        const p = points[i];
+        const isHovered = this.hoveredPoint === i;
+
+        ctx.fillStyle = isHovered ? "#312e81" : "#4f46e5";
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, isHovered ? 6.5 : 4.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "#6b7280";
+        ctx.fillText(p.date, p.x, h - padBottom + 6);
+
+        // Виведення значення настрою при наведенні мишею
+        if (isHovered) {
+          ctx.font = "700 15px 'Plus Jakarta Sans', sans-serif";
+          ctx.fillStyle = "#111827";
+          ctx.textBaseline = "bottom";
+          ctx.fillText(`${p.mood}/6`, p.x, p.y - 8);
+          ctx.textBaseline = "top";
+          ctx.font = "11px 'Plus Jakarta Sans', sans-serif";
+        }
+      }
+    },
+
+    // Ввзаємодія з мишею під час наведення підсвічуємо точки
+    setupCanvasHover() {
+      const canvas = document.querySelector("#chart");
+      if (!canvas) return;
+
+      canvas.addEventListener("mousemove", (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const mouseX = (e.clientX - rect.left) * scaleX;
+        const mouseY = (e.clientY - rect.top) * scaleY;
+
+        let foundIndex = null;
+        this.renderedPoints.forEach((p, index) => {
+          const dist = Math.hypot(mouseX - p.x, mouseY - p.y);
+          if (dist <= 12) foundIndex = index;
+        });
+
+        if (this.hoveredPoint !== foundIndex) {
+          this.hoveredPoint = foundIndex;
+          canvas.style.cursor = foundIndex !== null ? "pointer" : "default";
+          if (!this.animationId) {
+            this.drawChart(1);
+          }
+        }
+      });
+
+      canvas.addEventListener("mouseleave", () => {
+        if (this.hoveredPoint !== null) {
+          this.hoveredPoint = null;
+          canvas.style.cursor = "default";
+          if (!this.animationId) {
+            this.drawChart(1);
+          }
+        }
+      });
+    },
   },
 
   async mounted() {
     try {
       await migrateFromLocalStorage();
-
       this.moodRecords = await getAllItems();
-
+      this.setupCanvasHover();
+      this.startChartAnimation();
       await loadData();
     } catch (error) {
       console.error("Помилка при ініціалізації IndexedDB:", error);
       showError("Не вдалося відкрити базу даних IndexedDB.");
+    }
+  },
+
+  beforeUnmount() {
+    if (this.animationId) {
+      cancelAnimationFrame(this.animationId);
     }
   },
 }).mount("#app");
