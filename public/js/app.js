@@ -606,6 +606,7 @@ async function migrateFromLocalStorage() {
     for (const item of localItems) {
       await addItem(item);
     }
+    localStorage.removeItem(STORAGE_KEY);
     localStorage.setItem("migrated", "true");
   }
 }
