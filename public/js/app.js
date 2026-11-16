@@ -54,7 +54,7 @@ const MoodEntry = {
 };
 
 const MAX_CHARS = 200;
-const API_URL = "https://jsonplaceholder.typicode.com/comments?postId=1";
+const API_URL = "/api/mood-entries";
 const API_MOOD = 4;
 const STORAGE_KEY = "moodEntries";
 const DB_NAME = "MoodTrackerDB";
@@ -338,10 +338,10 @@ const app = Vue.createApp({
 
         const adaptedRecords = data.map((item) => ({
           id: `api-${item.id}`,
-          date: item.name,
-          note: item.body,
-          email: item.email,
-          mood: API_MOOD,
+          date: item.date,
+          note: item.note,
+          email: item.email || "",
+          mood: item.mood ?? API_MOOD,
           isApi: true,
         }));
 
